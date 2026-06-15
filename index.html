@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Speed Simulator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      color: #fff;
+    }
+
+    .subtitle {
+      color: #888;
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    label {
+      font-size: 0.8rem;
+      color: #aaa;
+      white-space: nowrap;
+    }
+
+    input[type="number"] {
+      width: 70px;
+      padding: 0.4rem 0.5rem;
+      border: 1px solid #333;
+      border-radius: 6px;
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 0.9rem;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus {
+      border-color: #4a9eff;
+    }
+
+    .btn {
+      padding: 0.5rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #4a9eff;
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: #3a8eef; }
+
+    .btn-danger {
+      background: #ff4a4a;
+      color: #fff;
+    }
+
+    .btn-danger:hover { background: #ee3a3a; }
+
+    .btn-secondary {
+      background: #2a2a2a;
+      color: #ccc;
+      border: 1px solid #333;
+    }
+
+    .btn-secondary:hover { background: #333; }
+
+    .text-input-area {
+      width: 100%;
+      max-width: 700px;
+      margin-bottom: 1.5rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 0.8rem;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: #111;
+      color: #ccc;
+      font-size: 0.85rem;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus { border-color: #4a9eff; }
+
+    textarea::placeholder { color: #555; }
+
+    .output-container {
+      width: 100%;
+      max-width: 700px;
+      min-height: 200px;
+      border: 1px solid #222;
+      border-radius: 8px;
+      background: #111;
+      padding: 1rem;
+      position: relative;
+      font-size: 1rem;
+      line-height: 1.8;
+    }
+
+    .output-text {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.2em;
+      background: #4a9eff;
+      margin-left: 1px;
+      vertical-align: text-bottom;
+      animation: blink 0.7s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    .stats {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: #666;
+    }
+
+    .stats span { color: #4a9eff; font-weight: 600; }
+
+    .preset-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .preset-btn {
+      padding: 0.3rem 0.7rem;
+      border: 1px solid #333;
+      border-radius: 20px;
+      background: transparent;
+      color: #aaa;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-btn:hover {
+      border-color: #4a9eff;
+      color: #4a9eff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Token Speed Simulator</h1>
+  <p class="subtitle">LLMの出力速度を体感する</p>
+
+  <div class="preset-row">
+    <button class="preset-btn" data-speed="5">5 tok/s</button>
+    <button class="preset-btn" data-speed="10">10 tok/s</button>
+    <button class="preset-btn" data-speed="15">15 tok/s</button>
+    <button class="preset-btn" data-speed="20">20 tok/s</button>
+    <button class="preset-btn" data-speed="30">30 tok/s</button>
+    <button class="preset-btn" data-speed="50">50 tok/s</button>
+    <button class="preset-btn" data-speed="100">100 tok/s</button>
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label for="speed">速度</label>
+      <input type="number" id="speed" value="15" min="1" max="500" step="1">
+      <label>tok/sec</label>
+    </div>
+    <button class="btn btn-primary" id="startBtn">Start</button>
+    <button class="btn btn-danger" id="stopBtn" disabled>Stop</button>
+    <button class="btn btn-secondary" id="clearBtn">Clear</button>
+  </div>
+
+  <div class="text-input-area">
+    <textarea id="inputText" placeholder="ここにテキストを貼り付けるか、デフォルトテキストを使用します..."></textarea>
+  </div>
+
+  <div class="output-container">
+    <div class="output-text" id="outputText"></div>
+    <div class="cursor" id="cursor" style="display:none;"></div>
+  </div>
+
+  <div class="stats">
+    <div>表示済み: <span id="tokenCount">0</span> tokens</div>
+    <div>経過: <span id="elapsed">0.0</span>秒</div>
+    <div>実測速度: <span id="actualSpeed">0</span> tok/s</div>
+  </div>
+
+  <script>
+    const defaultText = `Token Speed Simulatorへようこそ！
+
+このアプリは、LLM（大規模言語モデル）の出力速度を体感するためのツールです。
+
+左の入力欄にテキストを貼り付けるか、このデフォルトテキストを使用して、異なる速度を比較してみてください。
+
+たとえば、15 tok/sec はChatGPTの標準的な速度で、1秒間に約15トークン（約2-3単語）が表示されます。
+
+50 tok/sec になると、かなり素早く表示されることが分かります。
+
+逆に 5 tok/sec はゆっくりで、思考しながら回答しているような感覚を受けます。
+
+速度を変えて、体感の違いを比較してみてください。`;
+
+    const inputText = document.getElementById('inputText');
+    const outputText = document.getElementById('outputText');
+    const cursor = document.getElementById('cursor');
+    const speedInput = document.getElementById('speed');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const tokenCountEl = document.getElementById('tokenCount');
+    const elapsedEl = document.getElementById('elapsed');
+    const actualSpeedEl = document.getElementById('actualSpeed');
+
+    let animating = false;
+    let animationId = null;
+    let charIndex = 0;
+    let text = '';
+    let startTime = 0;
+    let tokensShown = 0;
+
+    // Tokenize: roughly 1 token ≈ 2 chars for Japanese, 4 chars for English
+    // Simple heuristic: count characters, approximate tokens
+    function estimateTokens(str) {
+      let count = 0;
+      for (const ch of str) {
+        if (ch.charCodeAt(0) > 0x2e80) {
+          // CJK characters: ~1 token per 1-2 chars
+          count += 0.7;
+        } else if (ch === ' ' || ch === '\n') {
+          count += 0.25;
+        } else {
+          // ASCII: ~1 token per 4 chars
+          count += 0.25;
+        }
+      }
+      return Math.round(count);
+    }
+
+    function startAnimation() {
+      if (animating) return;
+
+      text = inputText.value.trim() || defaultText;
+      const speed = parseInt(speedInput.value) || 15;
+
+      // Calculate delay per character based on speed
+      // speed is tokens/sec, we need chars/sec
+      // average token ≈ 2 chars (mixed ja/en)
+      const charsPerSec = speed * 2;
+      const delayPerChar = 1000 / charsPerSec;
+
+      animating = true;
+      charIndex = 0;
+      tokensShown = 0;
+      startTime = performance.now();
+      outputText.textContent = '';
+      cursor.style.display = 'inline-block';
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+
+      let lastTime = 0;
+      let accumulator = 0;
+
+      function animate(timestamp) {
+        if (!animating) return;
+
+        if (lastTime === 0) lastTime = timestamp;
+        const delta = timestamp - lastTime;
+        lastTime = timestamp;
+
+        accumulator += delta;
+
+        while (accumulator >= delayPerChar && charIndex < text.length) {
+          charIndex++;
+          accumulator -= delayPerChar;
+        }
+
+        outputText.textContent = text.slice(0, charIndex);
+        tokensShown = estimateTokens(text.slice(0, charIndex));
+
+        const elapsedSec = (performance.now() - startTime) / 1000;
+        tokenCountEl.textContent = tokensShown;
+        elapsedEl.textContent = elapsedSec.toFixed(1);
+        actualSpeedEl.textContent = (tokensShown / elapsedSec).toFixed(1);
+
+        if (charIndex >= text.length) {
+          animating = false;
+          cursor.style.display = 'none';
+          startBtn.disabled = false;
+          stopBtn.disabled = true;
+          return;
+        }
+
+        animationId = requestAnimationFrame(animate);
+      }
+
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function stopAnimation() {
+      animating = false;
+      if (animationId) cancelAnimationFrame(animationId);
+      cursor.style.display = 'none';
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+
+    startBtn.addEventListener('click', () => {
+      stopAnimation();
+      startAnimation();
+    });
+
+    stopBtn.addEventListener('click', stopAnimation);
+
+    clearBtn.addEventListener('click', () => {
+      stopAnimation();
+      outputText.textContent = '';
+      cursor.style.display = 'none';
+      tokenCountEl.textContent = '0';
+      elapsedEl.textContent = '0.0';
+      actualSpeedEl.textContent = '0';
+    });
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        speedInput.value = btn.dataset.speed;
+      });
+    });
+
+    inputText.value = '';
+  </script>
+</body>
+</html>
