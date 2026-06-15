@@ -273,7 +273,7 @@
       for (const ch of str) {
         if (ch.charCodeAt(0) > 0x2e80) {
           // CJK characters: ~1 token per 1-2 chars
-          count += 0.7;
+          count += 0.5;
         } else if (ch === ' ' || ch === '\n') {
           count += 0.25;
         } else {
